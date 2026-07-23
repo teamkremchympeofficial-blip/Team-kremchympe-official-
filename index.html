@@ -677,24 +677,117 @@ function buildWhatsappLink(){
   const persons = document.getElementById('numPersons').value || '1';
   const date = document.getElementById('tourDate').value || 'N/A';
   const paymentMode = document.querySelector('input[name="paymentMode"]:checked').value.toUpperCase();
+let adventure = [];
+let camping = [];
+let food = [];
 
-  let msg = `Booking Confirmation - Krem Chympe Adventure & Camping\n\n`;
-  msg += `Name: ${name}\nWhatsApp: ${wa}\nEmail: ${email}\nNumber of Person: ${persons}\nTour Date: ${date}\n\n`;
-  msg += `Selected Items:\n`;
-  (window.lastLines||[]).forEach(l=>{
-    msg += `- ${l.label}: ${fmt(l.amt)}\n`;
-  });
-  msg += `\nTotal Amount: ${fmt(window.lastTotal||0)}\n`;
-  msg += `Amount Paid: ${fmt(window.lastPaid||0)}\n`;
-  msg += `Amount Due: ${fmt(Math.max(window.lastDue||0,0))}\n`;
-  msg += `Payment Mode: ${paymentMode}\n\n`;
-  msg += `I am sending my payment screenshot to confirm this booking.`;
+let adventureTotal = 0;
+let campingTotal = 0;
+let foodTotal = 0;
 
+(window.lastLines || []).forEach(l => {
+
+    if (
+        l.label.includes("Local Guide") ||
+        l.label.includes("4x4") ||
+        l.label.includes("Adventure") ||
+        l.label.includes("Veg Thali") ||
+        l.label.includes("Chicken Thali") ||
+        l.label.includes("Pork Thali")
+    ) {
+        adventure.push(`• ${l.label}: ${fmt(l.amt)}`);
+        adventureTotal += l.amt;
+    }
+
+    else if (
+        l.label.includes("Camping") ||
+        l.label.includes("Overnight Guide")
+    ) {
+        camping.push(`• ${l.label}: ${fmt(l.amt)}`);
+        campingTotal += l.amt;
+    }
+
+    else {
+        food.push(`• ${l.label}: ${fmt(l.amt)}`);
+        foodTotal += l.amt;
+    }
+
+});
+
+let msg = `Booking Confirmation - Krem Chympe Adventure & Camping
+
+`;
+
+msg += `Name: ${name}
+`;
+msg += `WhatsApp: ${wa}
+`;
+msg += `Email: ${email}
+`;
+msg += `Number of Persons: ${persons}
+`;
+msg += `Tour Date: ${date}
+
+`;
+
+msg += `━━━━━━━━━━━━━━
+🏞️ Adventure (Without Camping)
+━━━━━━━━━━━━━━
+
+`;
+msg += adventure.join('\n');
+msg += `
+
+Adventure Total: ${fmt(adventureTotal)}
+
+`;
+
+msg += `━━━━━━━━━━━━━━
+🏕️ Camping
+━━━━━━━━━━━━━━
+
+`;
+msg += camping.join('\n');
+msg += `
+
+Camping Total: ${fmt(campingTotal)}
+
+`;
+
+msg += `━━━━━━━━━━━━━━
+🍽️ Extra Food Orders
+━━━━━━━━━━━━━━
+
+`;
+msg += food.join('\n');
+msg += `
+
+Food Total: ${fmt(foodTotal)}
+
+`;
+
+msg += `━━━━━━━━━━━━━━
+💳 Payment Summary
+━━━━━━━━━━━━━━
+
+`;
+
+msg += `Grand Total: ${fmt(window.lastTotal||0)}
+`;
+msg += `Amount Paid: ${fmt(window.lastPaid||0)}
+`;
+msg += `Amount Due: ${fmt(Math.max(window.lastDue||0,0))}
+`;
+msg += `Payment Mode: ${paymentMode}
+
+`;
+
+msg += `I am sending my payment screenshot to confirm this booking.`;
   const url = `https://wa.me/919863657412?text=${encodeURIComponent(msg)}`;
-  document.getElementById('whatsappLink').setAttribute('href', url);
+document.getElementById('whatsappLink').setAttribute('href', url);
 }
 
-function resetForm(){
+function resetForm() {
   document.getElementById('bookingForm').reset();
   counters = { lunchVeg:0, lunchChicken:0, lunchPork:0, tent:0 };
   PRICES.bamboo.forEach(item => counters['bamboo_'+item.id] = 0);
