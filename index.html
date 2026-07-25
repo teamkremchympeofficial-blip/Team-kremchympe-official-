@@ -415,7 +415,7 @@
         <h3>How much are you paying now?</h3>
         <div class="paid-input-wrap">
           <label class="field-label">Amount Paid (&#8377;)</label>
-          <input type="number" id="amountPaid" min="0" value="0" placeholder="Enter the amount you are paying">
+          <input type="number" id="amountPaid" min="500" value="0" placeholder="Enter atleast 500rs">
         </div>
         <div class="due-line total">
           <span>Total Booking Amount</span>
@@ -633,6 +633,14 @@ function goToStep(n){
     if(!document.getElementById('tourDate').value){
   alert('Please select a Tour Date.');
   return;
+    }
+    if (n === 4) {
+    const amountPaid = Number(document.getElementById("amountPaid").value);
+
+    if (amountPaid < 500) {
+        alert("Please enter at least ₹500 as advance payment.");
+        document.getElementById("amountPaid").focus();
+        return;
     }
   }
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
