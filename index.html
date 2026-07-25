@@ -610,6 +610,10 @@ function goToStep(n){
       alert('Please enter a valid Number of Person.');
       return;
     }
+    if(!document.getElementById('tourDate').value){
+  alert('Please select a Tour Date.');
+  return;
+    }
   }
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step'+n).classList.add('active');
