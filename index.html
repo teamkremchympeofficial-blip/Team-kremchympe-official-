@@ -641,7 +641,7 @@ function recalc(){
 
   const bd = document.getElementById('fullBreakdown');
   bd.innerHTML = '<strong style="color:var(--text);">Order Summary</strong>' +
-    lines.map(l=>`<div class="breakdown-row"><span>${l.label}</span><span>${fmt(l.amt)}</span></div>`).join('') +
+    lines.map(l=>`<div class="breakdown-row"><span>${l.label}</span><span>${l.label.includes("Lunch Pack") ? '' : fmt(l.amt)}</span></div>`).join('') +
     `<div class="breakdown-row" style="font-weight:700;border-top:1px solid #E7E1F7;margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(total)}</span></div>`;
 
   document.getElementById('upiAmountValue').textContent = fmt(total);
@@ -776,7 +776,7 @@ function buildWhatsappLink(){
       l.label.includes("Chicken Thali") ||
       l.label.includes("Pork Thali")
     ) {
-      adventure.push(`• ${l.label}: ${fmt(l.amt)}`);
+      adventure.push(l.label.includes("Lunch Pack") ? `• ${l.label}` : `• ${l.label}: ${fmt(l.amt)}`);
       adventureTotal += l.amt;
     } else if (
       l.label.includes("Camping") ||
