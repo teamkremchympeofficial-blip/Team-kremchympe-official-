@@ -269,7 +269,10 @@
 
       <div class="card">
         <h3>Lunch &ndash; &#8377;300 per person</h3>
-        <p class="note">If you pack your lunch, you can have it after the adventure and before visiting Chympe Falls.</p>
+        <p class="note"><em>Note: If you pack your lunch, you can have it after the adventure and before visiting Chympe Falls.</em></p>
+
+        <label class="radio-row"><input type="radio" name="packLunch" value="yes"> yes</label>
+        <label class="radio-row"><input type="radio" name="packLunch" value="no" checked> No</label>
 
         <div class="thali-card">
           <div class="counter-item-name">Veg Thali <span class="counter-item-price">&#8377;300 each</span></div>
@@ -329,7 +332,7 @@
     <section class="step" id="step2">
       <div class="section-header-bar" id="campingHeaderBar">Camping Details</div>
       <div class="card no-top-radius" id="campingIntroCard">
-        <p class="note">Please fill in the details below to book your camping experience.</p>
+        <p class="note"><em>Note: Please fill in the details below to book your camping experience.</em></p>
       </div>
 
       <div id="campingYesBlock">
@@ -366,7 +369,7 @@
             <h3 style="margin:0;">Traditional Bamboo Dishes (Zero Oil)</h3>
             <span class="chev">&#9660;</span>
           </div>
-          <p class="note">Available only with camping, as it requires extra preparation time and fresh ingredients. Tap to see all dishes and select quantities.</p>
+          <p class="note"><em>Note: Available only with camping, as it requires extra preparation time and fresh ingredients. Tap to see all dishes and select quantities.</em></p>
           <div class="collapse-body" id="bambooBody">
             <div id="bambooItems"></div>
           </div>
@@ -607,12 +610,14 @@ function computeBreakdown(){
   const campingYes = isCampingYes();
   const campMealsYes = document.querySelector('input[name="campMeals"]:checked') ?
     document.querySelector('input[name="campMeals"]:checked').value === 'yes' : true;
+  const packLunchYes = document.querySelector('input[name="packLunch"]:checked')?.value === 'yes';
 
   const lines = [];
   lines.push({label:'Local Guide (mandatory)', amt: PRICES.guide});
   if(jeepYes) lines.push({label:'4x4 Jeep (per group)', amt: PRICES.jeep});
   if(activitiesYes) lines.push({label:`Adventure Activities (${persons} x \u20B9${PRICES.activityPerPerson})`, amt: persons*PRICES.activityPerPerson});
 
+  lines.push({label:`Packing Own Lunch: ${packLunchYes ? 'Yes' : 'No'}`, amt: 0});
   if(counters.lunchVeg>0) lines.push({label:`Veg Thali x${counters.lunchVeg}`, amt: counters.lunchVeg*PRICES.lunch.veg});
   if(counters.lunchChicken>0) lines.push({label:`Chicken Thali x${counters.lunchChicken}`, amt: counters.lunchChicken*PRICES.lunch.chicken});
   if(counters.lunchPork>0) lines.push({label:`Pork Thali x${counters.lunchPork}`, amt: counters.lunchPork*PRICES.lunch.pork});
@@ -735,6 +740,7 @@ let foodTotal = 0;
         l.label.includes("Local Guide") ||
         l.label.includes("4x4") ||
         l.label.includes("Adventure") ||
+        l.label.includes("Packing Own Lunch") ||
         l.label.includes("Veg Thali") ||
         l.label.includes("Chicken Thali") ||
         l.label.includes("Pork Thali")
