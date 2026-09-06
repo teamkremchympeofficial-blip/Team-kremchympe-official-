@@ -719,7 +719,10 @@ function goToStep(n){
   document.getElementById('step'+n).classList.add('active');
   document.getElementById('heroCard').style.display = (n === 4) ? 'none' : '';
   recalc();
-  if(n===4) buildWhatsappLink();
+  if(n===4){
+    const waUrl = buildWhatsappLink();
+    window.open(waUrl, '_blank');
+  }
   window.scrollTo(0,0);
 }
 
@@ -880,6 +883,7 @@ I am sending my payment screenshot to confirm this booking.`;
 
   const url = `https://wa.me/${WHATSAPP_TO}?text=${encodeURIComponent(msg)}`;
   document.getElementById('whatsappLink').setAttribute('href', url);
+  return url;
 }
 
 function resetForm(){
