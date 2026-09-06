@@ -617,7 +617,7 @@ function computeBreakdown(){
   if(jeepYes) lines.push({label:'4x4 Jeep (per group)', amt: PRICES.jeep});
   if(activitiesYes) lines.push({label:`Adventure Activities (${persons} x \u20B9${PRICES.activityPerPerson})`, amt: persons*PRICES.activityPerPerson});
 
-  lines.push({label:`Lunch Pack ${packLunchYes ? '\u2713' : '\u00D7'}`, amt: 0});
+  lines.push({label:`Lunch Pack ${packLunchYes ? '✔️' : '❌'}`, amt: 0});
   if(counters.lunchVeg>0) lines.push({label:`Veg Thali x${counters.lunchVeg}`, amt: counters.lunchVeg*PRICES.lunch.veg});
   if(counters.lunchChicken>0) lines.push({label:`Chicken Thali x${counters.lunchChicken}`, amt: counters.lunchChicken*PRICES.lunch.chicken});
   if(counters.lunchPork>0) lines.push({label:`Pork Thali x${counters.lunchPork}`, amt: counters.lunchPork*PRICES.lunch.pork});
