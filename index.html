@@ -617,7 +617,7 @@ function computeBreakdown(){
   if(jeepYes) lines.push({label:'4x4 Jeep (per group)', amt: PRICES.jeep});
   if(activitiesYes) lines.push({label:`Adventure Activities (${persons} x \u20B9${PRICES.activityPerPerson})`, amt: persons*PRICES.activityPerPerson});
 
-  lines.push({label:`Packing Own Lunch: ${packLunchYes ? 'Yes' : 'No'}`, amt: 0});
+  lines.push({label:`Lunch Pack ${packLunchYes ? '\u2713' : '\u00D7'}`, amt: 0});
   if(counters.lunchVeg>0) lines.push({label:`Veg Thali x${counters.lunchVeg}`, amt: counters.lunchVeg*PRICES.lunch.veg});
   if(counters.lunchChicken>0) lines.push({label:`Chicken Thali x${counters.lunchChicken}`, amt: counters.lunchChicken*PRICES.lunch.chicken});
   if(counters.lunchPork>0) lines.push({label:`Pork Thali x${counters.lunchPork}`, amt: counters.lunchPork*PRICES.lunch.pork});
@@ -718,6 +718,38 @@ function downloadQR(){
   document.body.removeChild(a);
 }
 
+// =====================================================================
+// WHATSAPP PREFILLED MESSAGE TEMPLATE
+// ---------------------------------------------------------------------
+// Everything you see between the backticks ( ` ` ) below is the exact
+// text that gets sent to WhatsApp. Feel free to edit wording, emojis,
+// line breaks, or section titles directly here.
+//
+// Anything wrapped like ${this} is a placeholder that gets automatically
+// filled in with live data from the form — do not delete these, but you
+// can move them around or restyle the text next to them.
+//
+// Available placeholders:
+//   ${name}            -> Full Name
+//   ${wa}               -> WhatsApp Number
+//   ${email}            -> Email
+//   ${persons}          -> Number of Persons
+//   ${date}             -> Tour Date
+//   ${adventureList}    -> Adventure line items (auto-built list)
+//   ${adventureTotal}   -> Adventure section total
+//   ${campingList}      -> Camping line items (auto-built list)
+//   ${campingTotal}     -> Camping section total
+//   ${foodList}         -> Extra food line items (auto-built list)
+//   ${foodTotal}        -> Food section total
+//   ${grandTotal}       -> Grand total
+//   ${amountPaid}       -> Amount already paid
+//   ${amountDue}        -> Amount still due
+//   ${paymentMode}      -> UPI / QR / BANK
+//
+// The WhatsApp number the message is sent to is set in WHATSAPP_TO below.
+// =====================================================================
+const WHATSAPP_TO = '919863657412';
+
 function buildWhatsappLink(){
   const name = document.getElementById('fullName')?.value.trim() || 'N/A';
   const wa = document.getElementById('whatsappNumber')?.value.trim() || 'N/A';
@@ -726,115 +758,96 @@ function buildWhatsappLink(){
   const date = document.getElementById('tourDate')?.value || 'N/A';
   const paymentMode = document.querySelector('input[name="paymentMode"]:checked')?.value.toUpperCase() || 'N/A';
 
-  let adventure = [];
-let camping = [];
-let food = [];
+  // --- Sort each line item from the order summary into a section ---
+  const adventure = [];
+  const camping = [];
+  const food = [];
+  let adventureTotal = 0;
+  let campingTotal = 0;
+  let foodTotal = 0;
 
-let adventureTotal = 0;
-let campingTotal = 0;
-let foodTotal = 0;
-
-(window.lastLines || []).forEach(l => {
-
+  (window.lastLines || []).forEach(l => {
     if (
-        l.label.includes("Local Guide") ||
-        l.label.includes("4x4") ||
-        l.label.includes("Adventure") ||
-        l.label.includes("Packing Own Lunch") ||
-        l.label.includes("Veg Thali") ||
-        l.label.includes("Chicken Thali") ||
-        l.label.includes("Pork Thali")
+      l.label.includes("Local Guide") ||
+      l.label.includes("4x4") ||
+      l.label.includes("Adventure") ||
+      l.label.includes("Lunch Pack") ||
+      l.label.includes("Veg Thali") ||
+      l.label.includes("Chicken Thali") ||
+      l.label.includes("Pork Thali")
     ) {
-        adventure.push(`• ${l.label}: ${fmt(l.amt)}`);
-        adventureTotal += l.amt;
-    }
-
-    else if (
-        l.label.includes("Camping") ||
-        l.label.includes("Overnight Guide")
+      adventure.push(`• ${l.label}: ${fmt(l.amt)}`);
+      adventureTotal += l.amt;
+    } else if (
+      l.label.includes("Camping") ||
+      l.label.includes("Overnight Guide")
     ) {
-        camping.push(`• ${l.label}: ${fmt(l.amt)}`);
-        campingTotal += l.amt;
+      camping.push(`• ${l.label}: ${fmt(l.amt)}`);
+      campingTotal += l.amt;
+    } else {
+      food.push(`• ${l.label}: ${fmt(l.amt)}`);
+      foodTotal += l.amt;
     }
+  });
 
-    else {
-        food.push(`• ${l.label}: ${fmt(l.amt)}`);
-        foodTotal += l.amt;
-    }
+  const adventureList = adventure.join('\n');
+  const campingList = camping.join('\n');
+  const foodList = food.join('\n');
+  const grandTotal = fmt(window.lastTotal || 0);
+  const amountPaid = fmt(window.lastPaid || 0);
+  const amountDue = fmt(Math.max(window.lastDue || 0, 0));
 
-});
+  // ---------------------------------------------------------------
+  // EDIT THE MESSAGE TEXT BELOW — this is exactly what gets sent.
+  // ---------------------------------------------------------------
+  const msg =
+`Booking Confirmation - Krem Chympe Adventure & Camping
 
-let msg = `Booking Confirmation - Krem Chympe Adventure & Camping
+Name: ${name}
+WhatsApp: ${wa}
+Email: ${email}
+Number of Persons: ${persons}
+Tour Date: ${date}
 
-`;
-
-msg += `Name: ${name}
-`;
-msg += `WhatsApp: ${wa}
-`;
-msg += `Email: ${email}
-`;
-msg += `Number of Persons: ${persons}
-`;
-msg += `Tour Date: ${date}
-
-`;
-
-msg += `━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 🏞️ Adventure (Without Camping)
 ━━━━━━━━━━━━━━
 
-`;
-msg += adventure.join('\n');
-msg += `
+${adventureList}
 
-Adventure Total: ${fmt(adventureTotal)}
+Adventure Total: ${adventureTotal}
 
-`;
-
-msg += `━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 🏕️ Camping
 ━━━━━━━━━━━━━━
 
-`;
-msg += camping.join('\n');
-msg += `
+${campingList}
 
-Camping Total: ${fmt(campingTotal)}
+Camping Total: ${campingTotal}
 
-`;
-
-msg += `━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 🍽️ Extra Food Orders
 ━━━━━━━━━━━━━━
 
-`;
-msg += food.join('\n');
-msg += `
+${foodList}
 
-Food Total: ${fmt(foodTotal)}
+Food Total: ${foodTotal}
 
-`;
-
-msg += `━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 💳 Payment Summary
 ━━━━━━━━━━━━━━
 
-`;
+Grand Total: ${grandTotal}
+Amount Paid: ${amountPaid}
+Amount Due: ${amountDue}
+Payment Mode: ${paymentMode}
 
-msg += `Grand Total: ${fmt(window.lastTotal||0)}
-`;
-msg += `Amount Paid: ${fmt(window.lastPaid||0)}
-`;
-msg += `Amount Due: ${fmt(Math.max(window.lastDue||0,0))}
-`;
-msg += `Payment Mode: ${paymentMode}
+I am sending my payment screenshot to confirm this booking.`;
+  // ---------------------------------------------------------------
+  // END OF EDITABLE MESSAGE TEXT
+  // ---------------------------------------------------------------
 
-`;
-
-msg += `I am sending my payment screenshot to confirm this booking.`;
-
-  const url = `https://wa.me/919863657412?text=${encodeURIComponent(msg)}`;
+  const url = `https://wa.me/${WHATSAPP_TO}?text=${encodeURIComponent(msg)}`;
   document.getElementById('whatsappLink').setAttribute('href', url);
 }
 
