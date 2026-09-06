@@ -108,6 +108,9 @@
   .card.no-top-radius{border-radius:0 0 var(--radius) var(--radius);margin-top:-16px;}
   .thali-card{border:1px solid #E7E1F7;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
   .thali-card .counter-row{padding:8px 0 0;border:none;}
+  .pack-toggle-row{display:flex;align-items:center;gap:14px;padding-top:6px;margin-top:6px;border-top:1px dashed #E7E1F7;}
+  .pack-toggle-row .pack-toggle-label{font-size:13px;color:var(--muted);}
+  .pack-toggle-row .radio-row{padding:4px 0;font-size:14px;gap:6px;}
   .pay-detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0ECFA;}
   .pay-detail-row:last-child{border-bottom:none;}
   .pay-detail-value{font-family:'Courier New',monospace;font-size:15px;font-weight:600;word-break:break-all;}
@@ -271,9 +274,6 @@
         <h3>Lunch &ndash; &#8377;300 per person</h3>
         <p class="note"><em>Note: If you pack your lunch, you can have it after the adventure and before visiting Chympe Falls.</em></p>
 
-        <label class="radio-row"><input type="radio" name="packLunch" value="yes"> yes</label>
-        <label class="radio-row"><input type="radio" name="packLunch" value="no" checked> No</label>
-
         <div class="thali-card">
           <div class="counter-item-name">Veg Thali <span class="counter-item-price">&#8377;300 each</span></div>
           <div class="counter-row">
@@ -284,6 +284,11 @@
               <div class="counter-btn" data-action="inc" data-target="lunchVeg">+</div>
             </div>
             <div class="counter-subtotal" id="lunchVeg_sub">&#8377;0</div>
+          </div>
+          <div class="pack-toggle-row" id="lunchVeg_packRow" style="display:none;">
+            <span class="pack-toggle-label">Pack this?</span>
+            <label class="radio-row"><input type="radio" name="packLunch_veg" value="yes"> yes</label>
+            <label class="radio-row"><input type="radio" name="packLunch_veg" value="no" checked> No</label>
           </div>
         </div>
 
@@ -298,6 +303,11 @@
             </div>
             <div class="counter-subtotal" id="lunchChicken_sub">&#8377;0</div>
           </div>
+          <div class="pack-toggle-row" id="lunchChicken_packRow" style="display:none;">
+            <span class="pack-toggle-label">Pack this?</span>
+            <label class="radio-row"><input type="radio" name="packLunch_chicken" value="yes"> yes</label>
+            <label class="radio-row"><input type="radio" name="packLunch_chicken" value="no" checked> No</label>
+          </div>
         </div>
 
         <div class="thali-card">
@@ -310,6 +320,11 @@
               <div class="counter-btn" data-action="inc" data-target="lunchPork">+</div>
             </div>
             <div class="counter-subtotal" id="lunchPork_sub">&#8377;0</div>
+          </div>
+          <div class="pack-toggle-row" id="lunchPork_packRow" style="display:none;">
+            <span class="pack-toggle-label">Pack this?</span>
+            <label class="radio-row"><input type="radio" name="packLunch_pork" value="yes"> yes</label>
+            <label class="radio-row"><input type="radio" name="packLunch_pork" value="no" checked> No</label>
           </div>
         </div>
       </div>
@@ -555,6 +570,12 @@ function priceOf(key){
   return 0;
 }
 
+function packStatusOf(target){
+  const suffix = target.replace('lunch','').toLowerCase();
+  const el = document.querySelector(`input[name="packLunch_${suffix}"]:checked`);
+  return el ? el.value === 'yes' : false;
+}
+
 document.addEventListener('click', function(e){
   const btn = e.target.closest('.counter-btn');
   if(!btn) return;
@@ -564,6 +585,18 @@ document.addEventListener('click', function(e){
   else counters[target] = Math.max(0, counters[target]-1);
   document.getElementById(target+'_qty').textContent = counters[target];
   document.getElementById(target+'_sub').textContent = fmt(counters[target]*priceOf(target));
+
+  const packRow = document.getElementById(target+'_packRow');
+  if(packRow){
+    if(counters[target] > 0){
+      packRow.style.display = '';
+    } else {
+      packRow.style.display = 'none';
+      const suffix = target.replace('lunch','').toLowerCase();
+      const noRadio = document.querySelector(`input[name="packLunch_${suffix}"][value="no"]`);
+      if(noRadio) noRadio.checked = true;
+    }
+  }
   recalc();
 });
 
@@ -610,17 +643,14 @@ function computeBreakdown(){
   const campingYes = isCampingYes();
   const campMealsYes = document.querySelector('input[name="campMeals"]:checked') ?
     document.querySelector('input[name="campMeals"]:checked').value === 'yes' : true;
-  const packLunchYes = document.querySelector('input[name="packLunch"]:checked')?.value === 'yes';
-
   const lines = [];
   lines.push({label:'Local Guide (mandatory)', amt: PRICES.guide});
   if(jeepYes) lines.push({label:'4x4 Jeep (per group)', amt: PRICES.jeep});
   if(activitiesYes) lines.push({label:`Adventure Activities (${persons} x \u20B9${PRICES.activityPerPerson})`, amt: persons*PRICES.activityPerPerson});
 
-  lines.push({label:`Lunch Pack ${packLunchYes ? '✔️' : '❌'}`, amt: 0});
-  if(counters.lunchVeg>0) lines.push({label:`Veg Thali x${counters.lunchVeg}`, amt: counters.lunchVeg*PRICES.lunch.veg});
-  if(counters.lunchChicken>0) lines.push({label:`Chicken Thali x${counters.lunchChicken}`, amt: counters.lunchChicken*PRICES.lunch.chicken});
-  if(counters.lunchPork>0) lines.push({label:`Pork Thali x${counters.lunchPork}`, amt: counters.lunchPork*PRICES.lunch.pork});
+  if(counters.lunchVeg>0) lines.push({label:`Veg Thali x${counters.lunchVeg}`, amt: counters.lunchVeg*PRICES.lunch.veg, packed: packStatusOf('lunchVeg')});
+  if(counters.lunchChicken>0) lines.push({label:`Chicken Thali x${counters.lunchChicken}`, amt: counters.lunchChicken*PRICES.lunch.chicken, packed: packStatusOf('lunchChicken')});
+  if(counters.lunchPork>0) lines.push({label:`Pork Thali x${counters.lunchPork}`, amt: counters.lunchPork*PRICES.lunch.pork, packed: packStatusOf('lunchPork')});
 
   if(campingYes){
     if(counters.tent>0) lines.push({label:`Camping Tent x${counters.tent}`, amt: counters.tent*PRICES.tent});
@@ -641,7 +671,7 @@ function recalc(){
 
   const bd = document.getElementById('fullBreakdown');
   bd.innerHTML = '<strong style="color:var(--text);">Order Summary</strong>' +
-    lines.map(l=>`<div class="breakdown-row"><span>${l.label}</span><span>${l.label.includes("Lunch Pack") ? '' : fmt(l.amt)}</span></div>`).join('') +
+    lines.map(l=>`<div class="breakdown-row"><span>${l.label}${l.packed !== undefined ? ' &ndash; Pack: ' + (l.packed ? '✔️' : '❌') : ''}</span><span>${fmt(l.amt)}</span></div>`).join('') +
     `<div class="breakdown-row" style="font-weight:700;border-top:1px solid #E7E1F7;margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(total)}</span></div>`;
 
   document.getElementById('upiAmountValue').textContent = fmt(total);
@@ -771,12 +801,13 @@ function buildWhatsappLink(){
       l.label.includes("Local Guide") ||
       l.label.includes("4x4") ||
       l.label.includes("Adventure") ||
-      l.label.includes("Lunch Pack") ||
       l.label.includes("Veg Thali") ||
       l.label.includes("Chicken Thali") ||
       l.label.includes("Pork Thali")
     ) {
-      adventure.push(l.label.includes("Lunch Pack") ? `• ${l.label}` : `• ${l.label}: ${fmt(l.amt)}`);
+      adventure.push(l.packed !== undefined
+        ? `• ${l.label}: ${fmt(l.amt)}. = • Lunch Pack ${l.packed ? '✔️' : '❌'}`
+        : `• ${l.label}: ${fmt(l.amt)}`);
       adventureTotal += l.amt;
     } else if (
       l.label.includes("Camping") ||
@@ -857,6 +888,7 @@ function resetForm(){
   PRICES.bamboo.forEach(item => counters['bamboo_'+item.id] = 0);
   document.querySelectorAll('.counter-qty').forEach(el=>el.textContent='0');
   document.querySelectorAll('.counter-subtotal').forEach(el=>el.textContent=fmt(0));
+  document.querySelectorAll('.pack-toggle-row').forEach(el=>el.style.display='none');
   document.getElementById('campingHeaderBar').style.display = '';
   document.getElementById('campingIntroCard').style.display = '';
   document.getElementById('campingYesBlock').style.display = '';
